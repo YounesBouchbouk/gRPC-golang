@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 
@@ -22,6 +23,19 @@ func main() {
 
 	c := pb.NewGreetServiceClient(conn)
 
+	req := &pb.GreetRequest{
+		Result: &pb.Greeting{
+			Firstname: "Younes",
+			Lastname:  "Bouchbouk",
+		},
+	}
 	fmt.Printf("Ceated client %v", c)
+	res, err := c.Greet(context.Background(), req)
+
+	if err != nil {
+		log.Fatalf("error in response  %v", err)
+	}
+
+	fmt.Println("hello this come from server ", res.Result)
 
 }
