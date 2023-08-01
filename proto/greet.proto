@@ -19,7 +19,17 @@ message GreetRequest {
 }
 
 
+message StreamServerRequest{
+    Greeting result = 1; 
+}
+
+message StreamServerResponse{
+    Greeting result = 1; 
+}
+
+
 
 service GreetService{
     rpc Greet(GreetRequest) returns (GreetResponse) {};
+    rpc StreamServerGreet(StreamServerRequest) returns (stream StreamServerResponse) {};
 }
