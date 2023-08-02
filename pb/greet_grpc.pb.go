@@ -22,6 +22,7 @@ const (
 	GreetService_Greet_FullMethodName             = "/greet.GreetService/Greet"
 	GreetService_StreamServerGreet_FullMethodName = "/greet.GreetService/StreamServerGreet"
 	GreetService_StreamClientGreet_FullMethodName = "/greet.GreetService/StreamClientGreet"
+	GreetService_GreetEveryone_FullMethodName     = "/greet.GreetService/GreetEveryone"
 )
 
 // GreetServiceClient is the client API for GreetService service.
@@ -31,6 +32,7 @@ type GreetServiceClient interface {
 	Greet(ctx context.Context, in *GreetRequest, opts ...grpc.CallOption) (*GreetResponse, error)
 	StreamServerGreet(ctx context.Context, in *StreamServerRequest, opts ...grpc.CallOption) (GreetService_StreamServerGreetClient, error)
 	StreamClientGreet(ctx context.Context, opts ...grpc.CallOption) (GreetService_StreamClientGreetClient, error)
+	GreetEveryone(ctx context.Context, opts ...grpc.CallOption) (GreetService_GreetEveryoneClient, error)
 }
 
 type greetServiceClient struct {
@@ -116,6 +118,37 @@ func (x *greetServiceStreamClientGreetClient) CloseAndRecv() (*StreamClientRespo
 	return m, nil
 }
 
+func (c *greetServiceClient) GreetEveryone(ctx context.Context, opts ...grpc.CallOption) (GreetService_GreetEveryoneClient, error) {
+	stream, err := c.cc.NewStream(ctx, &GreetService_ServiceDesc.Streams[2], GreetService_GreetEveryone_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &greetServiceGreetEveryoneClient{stream}
+	return x, nil
+}
+
+type GreetService_GreetEveryoneClient interface {
+	Send(*GreetEveyoneRequest) error
+	Recv() (*GreetEveyoneResponse, error)
+	grpc.ClientStream
+}
+
+type greetServiceGreetEveryoneClient struct {
+	grpc.ClientStream
+}
+
+func (x *greetServiceGreetEveryoneClient) Send(m *GreetEveyoneRequest) error {
+	return x.ClientStream.SendMsg(m)
+}
+
+func (x *greetServiceGreetEveryoneClient) Recv() (*GreetEveyoneResponse, error) {
+	m := new(GreetEveyoneResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // GreetServiceServer is the server API for GreetService service.
 // All implementations must embed UnimplementedGreetServiceServer
 // for forward compatibility
@@ -123,6 +156,7 @@ type GreetServiceServer interface {
 	Greet(context.Context, *GreetRequest) (*GreetResponse, error)
 	StreamServerGreet(*StreamServerRequest, GreetService_StreamServerGreetServer) error
 	StreamClientGreet(GreetService_StreamClientGreetServer) error
+	GreetEveryone(GreetService_GreetEveryoneServer) error
 	mustEmbedUnimplementedGreetServiceServer()
 }
 
@@ -138,6 +172,9 @@ func (UnimplementedGreetServiceServer) StreamServerGreet(*StreamServerRequest, G
 }
 func (UnimplementedGreetServiceServer) StreamClientGreet(GreetService_StreamClientGreetServer) error {
 	return status.Errorf(codes.Unimplemented, "method StreamClientGreet not implemented")
+}
+func (UnimplementedGreetServiceServer) GreetEveryone(GreetService_GreetEveryoneServer) error {
+	return status.Errorf(codes.Unimplemented, "method GreetEveryone not implemented")
 }
 func (UnimplementedGreetServiceServer) mustEmbedUnimplementedGreetServiceServer() {}
 
@@ -217,6 +254,32 @@ func (x *greetServiceStreamClientGreetServer) Recv() (*StreamClientRequest, erro
 	return m, nil
 }
 
+func _GreetService_GreetEveryone_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(GreetServiceServer).GreetEveryone(&greetServiceGreetEveryoneServer{stream})
+}
+
+type GreetService_GreetEveryoneServer interface {
+	Send(*GreetEveyoneResponse) error
+	Recv() (*GreetEveyoneRequest, error)
+	grpc.ServerStream
+}
+
+type greetServiceGreetEveryoneServer struct {
+	grpc.ServerStream
+}
+
+func (x *greetServiceGreetEveryoneServer) Send(m *GreetEveyoneResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func (x *greetServiceGreetEveryoneServer) Recv() (*GreetEveyoneRequest, error) {
+	m := new(GreetEveyoneRequest)
+	if err := x.ServerStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // GreetService_ServiceDesc is the grpc.ServiceDesc for GreetService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -238,6 +301,12 @@ var GreetService_ServiceDesc = grpc.ServiceDesc{
 		{
 			StreamName:    "StreamClientGreet",
 			Handler:       _GreetService_StreamClientGreet_Handler,
+			ClientStreams: true,
+		},
+		{
+			StreamName:    "GreetEveryone",
+			Handler:       _GreetService_GreetEveryone_Handler,
+			ServerStreams: true,
 			ClientStreams: true,
 		},
 	},
