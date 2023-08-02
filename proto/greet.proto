@@ -27,9 +27,27 @@ message StreamServerResponse{
     Greeting result = 1; 
 }
 
+message StreamClientRequest {
+    Greeting result = 1; 
+}
+
+message StreamClientResponse {
+    string result = 1 ;
+}
+
+message GreetEveyoneRequest{
+    Greeting greeting = 1; 
+}
+
+message GreetEveyoneResponse{
+    string result = 1; 
+}
 
 
 service GreetService{
     rpc Greet(GreetRequest) returns (GreetResponse) {};
     rpc StreamServerGreet(StreamServerRequest) returns (stream StreamServerResponse) {};
+    rpc StreamClientGreet(stream  StreamClientRequest) returns (StreamClientResponse) {};
+    rpc GreetEveryone(stream GreetEveyoneRequest) returns (stream GreetEveyoneResponse){};
+
 }

@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"io"
 	"log"
 	"net"
 	"strconv"
@@ -41,6 +42,59 @@ func (*server) StreamServerGreet(req *pb.StreamServerRequest, stream pb.GreetSer
 	}
 
 	return nil
+
+}
+
+func (*server) StreamClientGreet(stream pb.GreetService_StreamClientGreetServer) error {
+	fmt.Printf("StreamClientGreet function  was invoked streming request \n")
+
+	result := ""
+	for {
+		req, err := stream.Recv()
+
+		if err == io.EOF {
+			response := &pb.StreamClientResponse{
+				Result: result,
+			}
+			return stream.SendAndClose(response)
+		}
+
+		if err != nil {
+			log.Fatalf("error getting streams %v", err)
+		}
+
+		firstname := req.GetResult().GetFirstname()
+
+		result += "Hello" + firstname + "!"
+
+	}
+
+}
+
+func (*server) GreetEveryone(stream pb.GreetService_GreetEveryoneServer) error {
+
+	fmt.Printf("GreetEveryone from server function  was invoked streming request \n")
+
+	for {
+		req, err := stream.Recv()
+
+		if err == io.EOF {
+
+			return nil
+		}
+
+		if err != nil {
+			log.Fatalf("error getting streams %v", err)
+			return nil
+		}
+
+		firstname := req.GetGreeting().Firstname
+
+		stream.Send(&pb.GreetEveyoneResponse{
+			Result: "hello " + firstname,
+		})
+
+	}
 
 }
 
